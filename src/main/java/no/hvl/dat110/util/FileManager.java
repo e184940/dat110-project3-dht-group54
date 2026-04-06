@@ -9,6 +9,7 @@ package no.hvl.dat110.util;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.rmi.RemoteException;
 import java.security.NoSuchAlgorithmException;
@@ -55,24 +56,37 @@ public class FileManager {
 		replicafiles = new BigInteger[N];
 		this.chordnode = chordnode;
 	}
-	
-	public void createReplicaFiles() {
-	 	
+
+	/**
+	 * Generates numreplicas = N rep. keys by appending an
+	 * index to filename and hashing each one with MD5. Hashes stored in replicafiles
+	 *
+	 * @throws UnsupportedEncodingException if UTF-8 encoding not available
+	 * @throws NoSuchAlgorithmException if MD5 alg not available
+	 */
+	public void createReplicaFiles() throws UnsupportedEncodingException, NoSuchAlgorithmException {
+
 		// set a loop where size = numReplicas
-		
-		// replicate by adding the index to filename
-		
-		// hash the replica
-		
-		// store the hash in the replicafiles array.
+		for (int i = 0; i < numReplicas; i++) {
+			// replicate by adding the index to filename
+			String replicaFilename = filename + i;
+
+			// hash the replica filename
+			// store the hash in the replicafiles array.
+			replicafiles[i] = Hash.hashOf(replicaFilename);
+		}
 	}
 	
     /**
-     * 
-     * @param bytesOfFile
-     * @throws RemoteException 
+     * Take each replica hash, find responsible node on ring, and store file content there.
+	 * One replica is randomly chosen as orimary for Remote-Write Protocol¨
+	 *
+     * @return number of replicas distributed
+     * @throws RemoteException if an RMI comm.err occurs
+	 * @throws UnsupportedEncodingException if UTF-8 encoding not available
+	 * @throws NoSuchAlgorithmException if MD5 alg not available
      */
-    public int distributeReplicastoPeers() throws RemoteException {
+    public int distributeReplicastoPeers() throws RemoteException, UnsupportedEncodingException, NoSuchAlgorithmException {
     	
     	// randomly appoint the primary server to this file replicas
     	Random rnd = new Random(); 							
@@ -81,32 +95,47 @@ public class FileManager {
     	int counter = 0;
 	
     	// Task1: Given a filename, make replicas and distribute them to all active peers such that: pred < replica <= peer
-    	
+
     	// Task2: assign a replica as the primary for this file. Hint, see the slide (project 3) on Canvas
     	
     	// create replicas of the filename
-    	
+		createReplicaFiles();
 		// iterate over the replicas
-    	
-    	// for each replica, find its successor (peer/node) by performing findSuccessor(replica)
-    	
-    	// call the addKey on the successor and add the replica
-		
-		// implement a logic to decide if this successor should be assigned as the primary for the file
-    	
-    	// call the saveFileContent() on the successor and set isPrimary=true if logic above is true otherwise set isPrimary=false
-    	
-    	// increment counter
+    	for (int i = 0; i < replicafiles.length; i++) {
+			BigInteger replica = replicafiles[i];
+
+			// for each replica, find its successor (peer/node) by performing findSuccessor(replica)
+			NodeInterface successor = chordnode.findSuccessor(replica);
+
+			if(successor != null){
+				// call the addKey on the successor and add the replica
+				successor.addKey(replica);
+
+				// implement a logic to decide if this successor should be assigned as the primary for the file
+				boolean isPrimary = (i == index);
+
+				// call the saveFileContent() on the successor and set isPrimary=true if logic above is true otherwise set isPrimary=false
+				successor.saveFileContent(filename, replica, bytesOfFile, isPrimary);
+
+				// increment counter
+				counter++;
+			}
+		}
 		return counter;
     }
 	
 	/**
-	 * 
-	 * @param filename
+	 * Finds all active nodes currently holding a replica of given file.
+	 * Locates each of N rep hashes on the ring and retrieves the msg of the replica from the successor of the file.
+	 * Metadata for all active nodes having the replica of the file is stored in activeNodesforFile set.
+	 *
+	 * @param filename the name of file, without patand extensions
 	 * @return list of active nodes having the replicas of this file
-	 * @throws RemoteException 
+	 * @throws RemoteException if an RMI comm.err occurs
+	 * @throws UnsupportedEncodingException if UTF-8 encoding not available
+	 * @throws NoSuchAlgorithmException if MD5 alg not available
 	 */
-	public Set<Message> requestActiveNodesForFile(String filename) throws RemoteException {
+	public Set<Message> requestActiveNodesForFile(String filename) throws RemoteException, UnsupportedEncodingException, NoSuchAlgorithmException {
 
 		this.filename = filename;
 		activeNodesforFile = new HashSet<Message>(); 
@@ -114,34 +143,45 @@ public class FileManager {
 		// Task: Given a filename, find all the peers that hold a copy of this file
 		
 		// generate the N replicas from the filename by calling createReplicaFiles()
-		
+		createReplicaFiles();
+
 		// iterate over the replicas of the file
-		
-		// for each replica, do findSuccessor(replica) that returns successor s.
-		
-		// get the metadata (Message) of the replica from the successor (i.e., active peer) of the file
-		
-		// save the metadata in the set activeNodesforFile.
-		
+		for (int i = 0; i < replicafiles.length; i++) {
+			BigInteger replica = replicafiles[i];
+
+			// for each replica, do findSuccessor(replica) that returns successor s.
+			NodeInterface successor = chordnode.findSuccessor(replica);
+
+			// get the metadata (Message) of the replica from the successor (i.e., active peer) of the file
+			if (successor != null) {
+				Message metadata = successor.getFilesMetadata(replica);
+				// save the metadata in the set activeNodesforFile.
+				if (metadata != null) activeNodesforFile.add(metadata);
+			}
+		}
 		return activeNodesforFile;
 	}
 	
 	/**
 	 * Find the primary server - Remote-Write Protocol
-	 * @return 
+	 *
+	 * @return the stub of primary server for this file, null if not found
 	 */
 	public NodeInterface findPrimaryOfItem() {
 
 		// Task: Given all the active peers of a file (activeNodesforFile()), find which is holding the primary copy
 		
 		// iterate over the activeNodesforFile
-		
 		// for each active peer (saved as Message)
-		
-		// use the primaryServer boolean variable contained in the Message class to check if it is the primary or not
-		
-		// return the primary when found (i.e., use Util.getProcessStub to get the stub and return it)
-		
+		for (Message msg : activeNodesforFile) {
+
+			// use the primaryServer boolean variable contained in the Message class to check if it is the primary or not
+			if (msg.isPrimaryServer()){
+
+				// return the primary when found (i.e., use Util.getProcessStub to get the stub and return it)
+				return Util.getProcessStub(msg.getNodeName(), msg.getPort());
+			}
+		}
 		return null; 
 	}
 	

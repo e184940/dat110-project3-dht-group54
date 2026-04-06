@@ -5,7 +5,9 @@ package no.hvl.dat110.unit.tests;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
+import java.security.NoSuchAlgorithmException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,7 +26,7 @@ class TestHashFunction {
 	 * Test method for {@link no.hvl.dat110.util.Hash#hashOf(java.lang.String)}.
 	 */
 	@Test
-	void testHashOf() {
+	void testHashOf() throws UnsupportedEncodingException, NoSuchAlgorithmException {
 		
 		// actual
 		BigInteger hash1 = Hash.hashOf("process1");
@@ -53,7 +55,7 @@ class TestHashFunction {
 	 * Test method for {@link no.hvl.dat110.util.Hash#addressSize()}.
 	 */
 	@Test
-	void testAddressSize() {
+	void testAddressSize() throws NoSuchAlgorithmException {
 		BigInteger address_space = new BigInteger("340282366920938463463374607431768211456");
 		
 		assertTrue(Hash.addressSize().compareTo(address_space) == 0);

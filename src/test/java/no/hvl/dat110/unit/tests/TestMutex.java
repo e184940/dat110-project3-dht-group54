@@ -3,7 +3,9 @@ package no.hvl.dat110.unit.tests;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
+import java.io.UnsupportedEncodingException;
 import java.rmi.RemoteException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -35,7 +37,7 @@ class TestMutex {
 	}
 
 	@Test
-	void test() throws InterruptedException, RemoteException {
+	void test() throws InterruptedException, RemoteException, UnsupportedEncodingException, NoSuchAlgorithmException {
 		
 		// retrieve the processes stubs
 		NodeInterface p1 = Util.getProcessStub("process1", 9091);

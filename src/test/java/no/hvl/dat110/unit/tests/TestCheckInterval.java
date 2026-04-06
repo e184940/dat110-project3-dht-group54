@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
 import java.rmi.RemoteException;
+import java.security.NoSuchAlgorithmException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,7 +24,7 @@ class TestCheckInterval {
 	}
 
 	@Test
-	void test() throws InterruptedException, RemoteException {
+	void test() throws InterruptedException, RemoteException, NoSuchAlgorithmException {
 		// lower1 < id1 < upper1  (false bcos lower1 > id)
 		BigInteger id1 = new BigInteger("8256520967608282605234844990226290265");
 		BigInteger lower1 = new BigInteger("15618062003214643351512781541041391612");

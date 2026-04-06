@@ -16,6 +16,7 @@ import java.util.Set;
 import no.hvl.dat110.middleware.Message;
 
 
+
 public interface NodeInterface extends Remote {
 	
 	public BigInteger getNodeID() throws RemoteException;

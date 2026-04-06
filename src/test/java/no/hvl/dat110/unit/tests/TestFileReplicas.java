@@ -4,8 +4,10 @@ package no.hvl.dat110.unit.tests;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.rmi.RemoteException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -20,7 +22,7 @@ class TestFileReplicas {
 
 
 	@Test
-	void test() throws InterruptedException, RemoteException {
+	void test() throws InterruptedException, RemoteException, UnsupportedEncodingException, NoSuchAlgorithmException {
 		
 		FileManager fm = new FileManager(null, Util.numReplicas);
 		
