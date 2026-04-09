@@ -90,7 +90,7 @@ public class FileManager {
     	
     	// randomly appoint the primary server to this file replicas
     	Random rnd = new Random(); 							
-    	int index = rnd.nextInt(Util.numReplicas-1);
+    	int index = rnd.nextInt(numReplicas);
     	
     	int counter = 0;
 	
@@ -179,8 +179,7 @@ public class FileManager {
 			if (msg.isPrimaryServer()){
 
 				// return the primary when found (i.e., use Util.getProcessStub to get the stub and return it)
-				return Util.getProcessStub(msg.getNodeName(), msg.getPort());
-			}
+				return Util.getProcessStub(msg.getNodeName(), msg.getPort());			}
 		}
 		return null; 
 	}
@@ -232,6 +231,7 @@ public class FileManager {
 	 * @return the numReplicas
 	 */
 	public int getNumReplicas() {
+
 		return numReplicas;
 	}
 	
